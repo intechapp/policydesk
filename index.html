@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PolicyDesk · WhatsApp dashboard</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14173D; --ink-2:#1E2256; --ink-3:#2D3275;
+  --mist:#F2F3FA; --card:#fff; --line:#E2E4F1;
+  --text:#181B3B; --muted:#686C92;
+  --iris:#5457EE; --iris-d:#4043C9; --iris-bg:#ECECFD;
+  --jade:#10A37A; --jade-bg:#DDF6EC;
+  --gold:#FFB020; --gold-bg:#FFF2D6;
+  --rose:#E5405F; --rose-bg:#FDE4E9;
+  --display:'Bricolage Grotesque',system-ui,sans-serif;
+  --body:'Instrument Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:var(--body);color:var(--text);background:var(--mist);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.02em;line-height:1.15}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+:focus-visible{outline:3px solid var(--iris);outline-offset:2px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* buttons / chips / fields */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:var(--iris);color:#fff;font-weight:600;padding:10px 16px;border-radius:10px;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--iris-d)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{background:var(--mist)}
+.btn.jade{background:var(--jade)} .btn.jade:hover{background:#0c8a67}
+.btn.danger{background:#fff;color:var(--rose);border-color:var(--rose-bg)} .btn.danger:hover{background:var(--rose-bg)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:99px;background:var(--mist);color:var(--muted);white-space:nowrap}
+.chip.jade{background:var(--jade-bg);color:#0a7556}.chip.gold{background:var(--gold-bg);color:#8a5a00}.chip.rose{background:var(--rose-bg);color:#b5203f}.chip.iris{background:var(--iris-bg);color:var(--iris-d)}
+.fld{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:600}
+.fld>span small{font-weight:400;color:var(--muted)}
+.fld input,.fld select,.fld textarea,.search{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-weight:400;width:100%}
+.fld textarea{resize:vertical;min-height:84px}
+.fld input:focus,.fld select:focus,.fld textarea:focus,.search:focus{outline:2px solid var(--iris);border-color:transparent}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none}
+.sw input{position:absolute;opacity:0;inset:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0}
+.sw i{position:absolute;inset:0;background:#C9CCE2;border-radius:99px;transition:.15s}
+.sw i::after{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
+.sw input:checked+i{background:var(--jade)}
+.sw input:checked+i::after{transform:translateX(18px)}
+.sw input:focus-visible+i{outline:3px solid var(--iris);outline-offset:2px}
+.row{display:flex;align-items:center;gap:12px}
+.spread{justify-content:space-between}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* login */
+.screen{min-height:100%;display:grid;grid-template-columns:1.1fr 1fr}
+.login-art{background:var(--ink);color:#fff;padding:56px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.login-art h1{font-size:clamp(32px,4vw,52px);font-weight:800;max-width:13ch}
+.bubbles{display:flex;flex-direction:column;gap:12px;max-width:380px}
+.bub{padding:11px 15px;border-radius:16px;font-size:15px;max-width:88%}
+.bub.in{background:#fff;color:var(--text);border-bottom-left-radius:4px;align-self:flex-start}
+.bub.out{background:#CFF5E4;color:#0b3b2c;border-bottom-right-radius:4px;align-self:flex-end}
+.bub small{display:block;opacity:.6;font-size:11.5px;margin-top:3px}
+.login-form{display:flex;align-items:center;justify-content:center;padding:32px}
+.login-form form{width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px}
+.login-form h2{font-size:28px}
+.err{color:#b5203f;font-size:13.5px;min-height:20px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.02em}
+.brand svg{width:34px;height:34px}
+
+/* app shell */
+#app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:var(--ink);color:#C9CCEE;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.side .brand{color:#fff;padding:0 8px 22px}
+.nav{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:inherit;background:none;border:0;cursor:pointer;text-align:left;font-weight:500;position:relative}
+.nav:hover{background:var(--ink-2);color:#fff}
+.nav.on{background:var(--ink-3);color:#fff}
+.nav.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--gold)}
+.nav .badge{margin-left:auto;background:var(--gold);color:#3b2a00;font-size:12px;font-weight:700;border-radius:99px;padding:0 7px}
+.side .who{margin-top:auto;padding:12px;border-radius:12px;background:var(--ink-2);font-size:13px}
+.side .who b{display:block;color:#fff;overflow:hidden;text-overflow:ellipsis}
+main{padding:30px 34px 60px;min-width:0}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.page-head h1{font-size:30px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h3{font-size:18px;margin-bottom:4px}
+.stack{display:flex;flex-direction:column;gap:18px}
+
+/* overview */
+.hero{background:var(--ink);color:#fff;border-radius:20px;padding:26px 28px 20px;display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:28px;align-items:end}
+.hero h1{font-size:34px;font-weight:800}
+.hero p{color:#B6BAE6;margin-top:8px}
+.ribbon{display:flex;align-items:flex-end;gap:5px;height:118px}
+.ribbon .day{flex:1;display:flex;align-items:flex-end;height:100%;border-bottom:2px solid var(--ink-3);cursor:default}
+.ribbon .day i{display:block;width:100%;border-radius:5px 5px 0 0;background:var(--ink-3);min-height:3px}
+.ribbon .day i.has{background:#8E91FF}
+.ribbon .day i.soon{background:var(--gold)}
+.ribbon .day.today{border-bottom-color:var(--gold)}
+.axis{display:flex;justify-content:space-between;font-size:12px;color:#8E92C8;margin-top:6px}
+.legend{display:flex;gap:16px;font-size:12.5px;color:#B6BAE6;margin-top:14px}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border:1px solid var(--line);border-radius:16px;margin:18px 0}
+.strip div{padding:16px 20px;border-left:1px solid var(--line)}
+.strip div:first-child{border-left:0}
+.strip b{display:block;font-family:var(--display);font-size:26px;font-weight:700}
+.strip span{color:var(--muted);font-size:13.5px}
+.two{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start}
+.list-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.list-row:first-of-type{border-top:0}
+.ava{width:38px;height:38px;border-radius:12px;background:var(--iris-bg);color:var(--iris-d);display:grid;place-items:center;font-weight:700;font-family:var(--display);flex:none}
+.grow{flex:1;min-width:0}
+.grow b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:26px 10px;text-align:center;color:var(--muted)}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:13px;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:#F8F8FD}
+.scroll-x{overflow-x:auto}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .search{max-width:320px}
+.toolbar select{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff}
+
+/* inbox */
+.inbox{display:grid;grid-template-columns:330px 1fr;height:calc(100vh - 150px);min-height:480px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.convs{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.convs-head{padding:12px;border-bottom:1px solid var(--line)}
+#convList{overflow-y:auto;flex:1}
+.conv{display:flex;gap:11px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center;width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.conv:hover{background:#F8F8FD}
+.conv.on{background:var(--iris-bg)}
+.conv .meta{font-size:12px;color:var(--muted);text-align:right;flex:none}
+.conv .dot{display:inline-block;min-width:20px;height:20px;border-radius:10px;background:var(--jade);color:#fff;font-size:12px;font-weight:700;text-align:center;line-height:20px;padding:0 5px;margin-top:4px}
+.conv small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat{display:flex;flex-direction:column;min-height:0;min-width:0}
+.chat-head{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.chat-empty{flex:1;display:grid;place-items:center;color:var(--muted);text-align:center;padding:30px}
+#msgs{flex:1;overflow-y:auto;padding:18px;background:#EEF0F9;background-image:radial-gradient(#DADDF0 1px,transparent 1px);background-size:18px 18px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:min(70%,520px);padding:8px 12px 6px;border-radius:14px;font-size:14.5px;word-wrap:break-word;overflow-wrap:anywhere}
+.m.in{background:#fff;align-self:flex-start;border-bottom-left-radius:4px}
+.m.out{background:#D4F5E6;align-self:flex-end;border-bottom-right-radius:4px}
+.m .t{font-size:11px;color:var(--muted);text-align:right;margin-top:2px;display:flex;gap:6px;justify-content:flex-end}
+.m .t .read{color:#1d7be0}.m .t .failed{color:var(--rose);font-weight:700}
+.m a{color:var(--iris-d);font-weight:600}
+.dayline{align-self:center;font-size:12px;color:var(--muted);background:#fff;border-radius:99px;padding:2px 12px;margin:8px 0}
+.composer{border-top:1px solid var(--line);padding:12px;display:flex;gap:10px;align-items:flex-end}
+.composer textarea{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:none;max-height:120px}
+.notice{padding:10px 18px;background:var(--gold-bg);color:#6b4600;font-size:13.5px;border-top:1px solid #F5DFA5}
+
+/* bot */
+.rule-hint{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.rule-hint code{background:var(--iris-bg);color:var(--iris-d);padding:1px 8px;border-radius:6px;font-size:12.5px;cursor:pointer}
+.setting{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding:16px 0;border-top:1px solid var(--line)}
+.setting:first-of-type{border-top:0}
+.setting .body{flex:1;display:flex;flex-direction:column;gap:10px}
+.copybox{display:flex;gap:8px}
+.copybox input{flex:1;font-family:ui-monospace,Menlo,monospace;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--mist)}
+.result{border-radius:12px;padding:14px 16px;background:var(--jade-bg);color:#0a5d44;margin-top:14px}
+.result.bad{background:var(--rose-bg);color:#8d1c34}
+
+/* dialog + toasts */
+dialog{border:0;border-radius:20px;padding:0;width:min(640px,94vw);max-height:92vh;box-shadow:0 30px 80px rgba(20,23,61,.35)}
+dialog::backdrop{background:rgba(20,23,61,.55)}
+.dlg{padding:24px;display:flex;flex-direction:column;gap:16px}
+.dlg h2{font-size:24px}
+.dlg-foot{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+#toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:99}
+.toast{background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;max-width:360px;box-shadow:0 10px 30px rgba(20,23,61,.3)}
+.toast.bad{background:#B5203F}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--iris)}
+
+@media(max-width:1000px){.two{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.strip{grid-template-columns:1fr 1fr}.strip div:nth-child(3){border-left:0}.strip div:nth-child(n+3){border-top:1px solid var(--line)}}
+@media(max-width:860px){
+  .screen{grid-template-columns:1fr}.login-art{display:none}
+  #app{grid-template-columns:1fr;padding-bottom:70px}
+  .side{position:fixed;inset:auto 0 0 0;height:auto;flex-direction:row;padding:6px;z-index:20;justify-content:space-around;gap:0}
+  .side .brand,.side .who{display:none}
+  .nav{flex-direction:column;gap:2px;font-size:11px;padding:6px 8px;align-items:center}
+  .nav.on::before{display:none}
+  main{padding:20px 14px}
+  .inbox{grid-template-columns:1fr;height:calc(100vh - 190px)}
+  .inbox .chat{display:none}.inbox.open .chat{display:flex}.inbox.open .convs{display:none}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ═════════ LOGIN ═════════ -->
+<div id="login" class="screen hidden">
+  <div class="login-art">
+    <div class="brand"><svg viewBox="0 0 40 40"><path d="M20 3l14 5v10c0 9-6 16-14 19C12 34 6 27 6 18V8z" fill="#FFB020"/><path d="M14 15h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-6l-4 3.5V24h-2a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2z" fill="#14173D"/></svg>PolicyDesk</div>
+    <div>
+      <h1>Every policy and every chat on one desk.</h1>
+      <p style="color:#B6BAE6;margin-top:14px;max-width:38ch">Reminders go out before premiums are due. Customers get their policy copy in seconds.</p>
+    </div>
+    <div class="bubbles">
+      <div class="bub in">When is my health premium due?<small>10:41</small></div>
+      <div class="bub out">Hi Meena, your Health Shield premium of ₹14,200 is due on 28 Oct.<small>10:41 · sent by bot</small></div>
+      <div class="bub in">Please send my policy copy<small>10:42</small></div>
+      <div class="bub out">Policy-HS-2291.pdf<small>10:42 · sent by bot</small></div>
+    </div>
+  </div>
+  <div class="login-form">
+    <form id="loginForm">
+      <h2>Sign in to your desk</h2>
+      <label class="fld"><span>Email</span><input id="lEmail" type="email" autocomplete="username" required></label>
+      <label class="fld"><span>Password</span><input id="lPass" type="password" autocomplete="current-password" required></label>
+      <div class="err" id="lErr" role="alert"></div>
+      <button class="btn" id="lBtn">Sign in</button>
+      <button type="button" class="btn ghost" id="lReset">Email me a password reset link</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═════════ GATE (first admin / no access) ═════════ -->
+<div id="gate" class="screen hidden" style="grid-template-columns:1fr">
+  <div class="login-form"><div style="max-width:420px;display:flex;flex-direction:column;gap:16px" id="gateBox"></div></div>
+</div>
+
+<!-- ═════════ APP ═════════ -->
+<div id="app" class="hidden">
+  <aside class="side">
+    <div class="brand"><svg viewBox="0 0 40 40"><path d="M20 3l14 5v10c0 9-6 16-14 19C12 34 6 27 6 18V8z" fill="#FFB020"/><path d="M14 15h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-6l-4 3.5V24h-2a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2z" fill="#14173D"/></svg>PolicyDesk</div>
+    <button class="nav" data-go="overview"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Overview</button>
+    <button class="nav" data-go="inbox"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Inbox<span class="badge hidden" id="unreadBadge"></span></button>
+    <button class="nav" data-go="customers"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>Customers</button>
+    <button class="nav" data-go="broadcast"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Reminders</button>
+    <button class="nav" data-go="bot"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>Auto-reply bot</button>
+    <button class="nav" data-go="settings"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Settings</button>
+    <div class="who"><b id="whoEmail"></b><span id="whoRole" class="muted"></span><br><a href="#" data-act="logout" style="color:var(--gold);font-weight:600;text-decoration:none">Sign out</a></div>
+  </aside>
+
+  <main id="main">
+    <section class="page hidden" id="p-overview"></section>
+    <section class="page hidden" id="p-inbox"></section>
+    <section class="page hidden" id="p-customers"></section>
+    <section class="page hidden" id="p-broadcast"></section>
+    <section class="page hidden" id="p-bot"></section>
+    <section class="page hidden" id="p-settings"></section>
+  </main>
+</div>
+
+<dialog id="dlg"></dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, query, orderBy, limit, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+/* ──────────────────────────────────────────────────────────────
+   1) Paste YOUR Firebase web config here (Project settings → Your apps → Web).
+      These values are public identifiers, not secrets.
+      NOTE: No Meta / WhatsApp details go in this file. They are entered on the
+      Settings page and saved to Firebase (Firestore private/meta) by a Cloud Function.
+   ────────────────────────────────────────────────────────────── */
+const firebaseConfig = {
+  apiKey: "AIzaSyDE63DcSgbyf5hfSc4DiapC-2vz6LH8q-k",
+  authDomain: "tenkasi-insurance.firebaseapp.com",
+  projectId: "tenkasi-insurance",
+  storageBucket: "tenkasi-insurance.firebasestorage.app",
+  messagingSenderId: "336249940585",
+  appId: "1:336249940585:web:df0ad1cb98a046e8dc90f8",
+  measurementId: "G-3JXGDNR7GX"
+};
+const REGION = "asia-south1";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app), db = getFirestore(app), storage = getStorage(app), fns = getFunctions(app, REGION);
+
+/* ───────── utilities ───────── */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const inr = n => (n || n === 0) && n !== "" ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n) : "—";
+const normPhone = p => { let d = String(p || "").replace(/\D/g, ""); if (d.length === 10) d = "91" + d; if (d.length === 11 && d.startsWith("0")) d = "91" + d.slice(1); return d; };
+const initials = n => String(n || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+const daysUntil = d => { const t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((new Date(d + "T00:00:00") - t) / 864e5); };
+const fmtDate = d => d ? new Date(d + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+const dueText = d => { const n = daysUntil(d); return n === 0 ? "Due today" : n === 1 ? "Due tomorrow" : n > 0 ? `Due in ${n} days` : `${-n} day${n === -1 ? "" : "s"} overdue`; };
+const tdate = ts => ts?.toDate ? ts.toDate() : ts ? new Date(ts) : null;
+const tlabel = ts => { const d = tdate(ts); if (!d) return ""; const n = new Date(); return d.toDateString() === n.toDateString() ? d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) : d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
+const byDue = (a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999");
+const ic = {
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  file: '<svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
+  send: '<svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>',
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>'
+};
+function toast(msg, bad) { const t = document.createElement("div"); t.className = "toast" + (bad ? " bad" : ""); t.textContent = msg; $("#toasts").append(t); setTimeout(() => t.remove(), bad ? 6500 : 3500); }
+async function call(name, data) { try { return (await httpsCallable(fns, name)(data || {})).data; } catch (e) { throw new Error(e.message || "Something went wrong"); } }
+async function busy(btn, fn) { const t = btn.innerHTML; btn.disabled = true; btn.textContent = "Working…"; try { return await fn(); } catch (e) { toast(e.message, true); } finally { btn.disabled = false; btn.innerHTML = t; } }
+const modal = html => { const d = $("#dlg"); d.innerHTML = html; if (!d.open) d.showModal(); return d; };
+const closeModal = () => $("#dlg").close();
+$("#dlg").addEventListener("click", e => { if (e.target.closest("[data-close]") || e.target === $("#dlg")) closeModal(); });
+
+// Keyword matching (same logic as the server)
+const norm = s => " " + String(s || "").toLowerCase().replace(/[^\p{L}\p{M}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim() + " ";
+const matchRule = (r, text) => { const t = norm(text); return String(r.keywords || "").split(",").map(k => k.trim()).filter(Boolean).some(k => r.match === "exact" ? t === norm(k) : t.includes(norm(k))); };
+const VARS = ["name", "policy_no", "policy_type", "insurer", "premium", "due_date"];
+const fillVars = (str, c = {}) => String(str || "").replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (m, k) => { const map = { name: c.name || "there", policy_no: c.policyNumber, policy_type: c.policyType, insurer: c.insurer, premium: c.premium ? "₹" + Number(c.premium).toLocaleString("en-IN") : "", due_date: c.dueDate ? fmtDate(c.dueDate) : "" }; return k in map ? (map[k] || "-") : m; });
+
+/* ───────── state ───────── */
+const S = { role: null, customers: [], byPhone: {}, convs: [], rules: [], bot: {}, staff: [], templates: null, tplError: "", active: null, msgs: [], unsubMsgs: null, booted: false, meta: null, pre: null };
+const B = { key: "", filter: "due30", params: [], sel: new Set(), custom: null, result: null };
+
+/* ───────── auth ───────── */
+const show = id => { ["login", "gate", "app"].forEach(x => $("#" + x).classList.toggle("hidden", x !== id)); };
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("#lErr").textContent = ""; $("#lBtn").disabled = true;
+  try { await signInWithEmailAndPassword(auth, $("#lEmail").value.trim(), $("#lPass").value); }
+  catch (err) { $("#lErr").textContent = "That email and password don't match. Check them and try again."; }
+  $("#lBtn").disabled = false;
+});
+$("#lReset").addEventListener("click", async () => {
+  const em = $("#lEmail").value.trim(); if (!em) { $("#lErr").textContent = "Enter your email above first."; return; }
+  try { await sendPasswordResetEmail(auth, em); $("#lErr").textContent = "Reset link sent. Check your inbox."; } catch { $("#lErr").textContent = "Couldn't send the link. Check the email address."; }
+});
+onAuthStateChanged(auth, async user => {
+  if (!user) { show("login"); return; }
+  try {
+    const me = await call("me");
+    if (me.role) { S.role = me.role; boot(user); }
+    else if (!me.staffExists) gate(`<h2>Set up your desk</h2><p class="muted">You're the first person here. Make this account the admin. You can add your team afterwards.</p><button class="btn" id="claim">Make me the admin</button><button class="btn ghost" data-act="logout">Sign out</button>`, async () => { try { await call("claimAdmin"); location.reload(); } catch (e) { toast(e.message, true); } });
+    else gate(`<h2>No access yet</h2><p class="muted">You're signed in as ${esc(user.email)}, but an admin hasn't added you to the team.</p><button class="btn ghost" data-act="logout">Sign out</button>`);
+  } catch (e) { gate(`<h2>Can't reach the backend</h2><p class="muted">${esc(e.message)}. Check that the Cloud Functions are deployed to ${REGION}.</p><button class="btn" onclick="location.reload()">Try again</button>`); }
+});
+function gate(html, onclaim) { $("#gateBox").innerHTML = html; show("gate"); if (onclaim) $("#claim").onclick = onclaim; }
+
+function boot(user) {
+  show("app");
+  $("#whoEmail").textContent = user.email; $("#whoRole").textContent = S.role === "admin" ? "Admin" : "Agent";
+  if (!S.booted) {
+    S.booted = true;
+    const err = e => toast("Firebase: " + e.message, true);
+    onSnapshot(collection(db, "customers"), s => { S.customers = s.docs.map(d => ({ id: d.id, ...d.data() })); S.byPhone = Object.fromEntries(S.customers.map(c => [c.phone, c])); rerender(); }, err);
+    onSnapshot(query(collection(db, "conversations"), orderBy("lastAt", "desc"), limit(150)), s => { S.convs = s.docs.map(d => ({ id: d.id, ...d.data() })); const u = S.convs.filter(c => c.unread > 0).length; const b = $("#unreadBadge"); b.textContent = u; b.classList.toggle("hidden", !u); rerender("convs"); }, err);
+    onSnapshot(query(collection(db, "botRules"), orderBy("priority")), s => { S.rules = s.docs.map(d => ({ id: d.id, ...d.data() })); rerender(); }, err);
+    onSnapshot(doc(db, "bot", "settings"), s => { S.bot = s.data() || {}; if (cur() === "bot" && !$("#p-bot").dataset.dirty) rerender(); }, err);
+    onSnapshot(collection(db, "staff"), s => { S.staff = s.docs.map(d => ({ id: d.id, ...d.data() })); rerender(); }, err);
+  }
+  go(location.hash.slice(1) || "overview");
+}
+
+/* ───────── router ───────── */
+const cur = () => $(".nav.on")?.dataset.go;
+function go(p) {
+  if (!$("#p-" + p)) p = "overview";
+  location.hash = p;
+  $$(".page").forEach(x => x.classList.toggle("hidden", x.id !== "p-" + p));
+  $$(".nav").forEach(n => n.classList.toggle("on", n.dataset.go === p));
+  $("#p-bot").dataset.dirty = "";
+  render[p]();
+}
+window.addEventListener("hashchange", () => { if (S.booted && location.hash.slice(1) !== cur()) go(location.hash.slice(1)); });
+function rerender(what) {
+  const p = cur(); if (!p) return;
+  if (p === "inbox") { if (what === "convs" || !what) { paintConvList(); paintHead(); } return; }
+  if (p === "broadcast" || p === "settings" || p === "bot") { if (what === "convs") return; if (p === "bot" && $("#p-bot").dataset.dirty) return; if (p === "broadcast" && document.activeElement?.closest("#p-broadcast input,#p-broadcast select")) return; if (p === "settings" && document.activeElement?.closest("#p-settings input")) return; }
+  if (what === "convs" && p !== "overview") return;
+  render[p]();
+}
+
+/* ───────── click delegation ───────── */
+document.addEventListener("click", async e => {
+  const g = e.target.closest("[data-go]"); if (g) { go(g.dataset.go); return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const act = a.dataset.act, id = a.dataset.id;
+  if (a.tagName === "A") e.preventDefault();
+  e.stopPropagation();
+  if (act === "logout") { await signOut(auth); location.reload(); }
+  else if (act === "open-conv") openConv(id);
+  else if (act === "back-convs") { $(".inbox").classList.remove("open"); S.active = null; }
+  else if (act === "toggle-bot") { const c = S.convs.find(x => x.id === S.active); try { await setDoc(doc(db, "conversations", S.active), { botPaused: !c?.botPaused }, { merge: true }); } catch (er) { toast(er.message, true); } }
+  else if (act === "send-pdf") { const c = S.byPhone[S.active]; if (c) busy(a, async () => { await call("sendPolicyPdf", { customerId: c.id }); toast("Policy PDF sent"); }); }
+  else if (act === "cust-new") custModal();
+  else if (act === "cust-edit") custModal(S.customers.find(c => c.id === id));
+  else if (act === "cust-chat") { go("inbox"); openConv(a.dataset.phone); }
+  else if (act === "cust-import") importModal();
+  else if (act === "remind") { S.pre = [id]; go("broadcast"); }
+  else if (act === "rule-edit") ruleModal(S.rules.find(r => r.id === id));
+  else if (act === "rule-del") { if (confirm("Delete this rule?")) await deleteDoc(doc(db, "botRules", id)); }
+  else if (act === "rule-samples") addSamples();
+  else if (act === "copy") { navigator.clipboard.writeText(a.dataset.text); toast("Copied"); }
+  else if (act === "staff-remove") { if (confirm("Remove this person's access?")) busy(a, () => call("removeStaff", { uid: id })); }
+  else if (act === "tpl-refresh") { S.templates = null; loadTemplates(true); }
+  else if (act === "ins-var") { const t = $(a.dataset.target); if (t) { t.value += `{{${a.dataset.v}}}`; t.focus(); } }
+});
+
+/* ═══════════════════ OVERVIEW ═══════════════════ */
+const render = {};
+render.overview = () => {
+  const cs = S.customers, due = cs.filter(c => c.dueDate).map(c => ({ ...c, d: daysUntil(c.dueDate) }));
+  const soon = due.filter(c => c.d >= 0 && c.d <= 29), overdue = due.filter(c => c.d < 0);
+  const counts = Array.from({ length: 30 }, (_, i) => soon.filter(c => c.d === i).length);
+  const premium = soon.reduce((s, c) => s + (+c.premium || 0), 0);
+  const list = [...overdue.sort(byDue).slice(-5), ...soon.sort(byDue)].slice(0, 12);
+  const day = i => { const d = new Date(); d.setDate(d.getDate() + i); return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
+  $("#p-overview").innerHTML = `
+  <div class="hero">
+    <div><h1>${soon.length} ${soon.length === 1 ? "policy renews" : "policies renew"} in the next 30 days</h1>
+      <p>${inr(premium)} in premium${overdue.length ? ` · <b style="color:#FFB4C2">${overdue.length} already overdue</b>` : ""}</p></div>
+    <div><div class="ribbon" role="img" aria-label="Renewals per day for the next 30 days">${counts.map((n, i) => `<div class="day ${i === 0 ? "today" : ""}" title="${day(i)}: ${n} due"><i class="${n ? (i <= 7 ? "soon" : "has") : ""}" style="height:${n ? 14 + Math.min(n, 8) * 12 : 3}px"></i></div>`).join("")}</div>
+      <div class="axis"><span>Today</span><span>${day(7)}</span><span>${day(14)}</span><span>${day(21)}</span><span>${day(29)}</span></div>
+      <div class="legend"><span><b style="background:var(--gold)"></b>Due within 7 days</span><span><b style="background:#8E91FF"></b>Due later</span></div></div>
+  </div>
+  <div class="strip">
+    <div><b>${cs.length}</b><span>Customers</span></div>
+    <div><b>${cs.filter(c => c.optIn).length}</b><span>Agreed to WhatsApp</span></div>
+    <div><b>${S.convs.filter(c => c.unread > 0).length}</b><span>Chats waiting for a reply</span></div>
+    <div><b>${cs.filter(c => c.policyPdfUrl).length}</b><span>Policy PDFs stored</span></div>
+  </div>
+  <div class="two">
+    <div class="card"><div class="row spread"><h3>Renewals to chase</h3><button class="btn ghost sm" data-go="broadcast">Send reminders</button></div>
+      ${list.length ? list.map(c => `<div class="list-row"><div class="ava">${esc(initials(c.name))}</div><div class="grow"><b>${esc(c.name)}</b><span class="small muted">${esc(c.policyType || "Policy")} ${c.policyNumber ? "· " + esc(c.policyNumber) : ""} · ${inr(c.premium)}</span></div>
+        <span class="chip ${c.d < 0 ? "rose" : c.d <= 7 ? "gold" : ""}">${dueText(c.dueDate)}</span>
+        <button class="btn ghost sm" data-act="cust-chat" data-phone="${esc(c.phone)}">Chat</button>
+        <button class="btn sm" data-act="remind" data-id="${c.id}">Remind</button></div>`).join("") : `<div class="empty">No renewals in the next 30 days.<br>Add customers with a due date and they'll appear here.</div>`}
+    </div>
+    <div class="card"><h3>Latest chats</h3>
+      ${S.convs.slice(0, 6).map(c => { const n = convName(c); return `<div class="list-row" style="cursor:pointer" data-act="open-chat-from-overview" data-id="${c.id}"><div class="ava">${esc(initials(n))}</div><div class="grow"><b>${esc(n)}</b><span class="small muted">${esc(c.lastText || "")}</span></div><span class="small muted">${tlabel(c.lastAt)}</span></div>`; }).join("") || `<div class="empty">No chats yet. Messages from customers show up here.</div>`}
+    </div>
+  </div>`;
+  $$("[data-act=open-chat-from-overview]").forEach(el => el.onclick = () => { go("inbox"); openConv(el.dataset.id); });
+};
+
+/* ═══════════════════ INBOX ═══════════════════ */
+const convName = c => S.byPhone[c.id]?.name || c.name || "+" + c.id;
+render.inbox = () => {
+  $("#p-inbox").innerHTML = `<div class="page-head"><h1>Inbox</h1></div>
+  <div class="inbox ${S.active ? "open" : ""}"><div class="convs"><div class="convs-head"><input class="search" id="convSearch" placeholder="Search name or number"></div><div id="convList"></div></div>
+  <div class="chat" id="chat"></div></div>`;
+  $("#convSearch").oninput = paintConvList;
+  paintConvList();
+  if (S.active) buildChat(); else $("#chat").innerHTML = `<div class="chat-empty"><div><h3>Pick a chat</h3><p>Replies, delivery ticks and bot answers show here live.</p></div></div>`;
+};
+function paintConvList() {
+  const box = $("#convList"); if (!box) return;
+  const q = ($("#convSearch")?.value || "").toLowerCase();
+  const rows = S.convs.filter(c => !q || convName(c).toLowerCase().includes(q) || c.id.includes(q));
+  box.innerHTML = rows.map(c => `<button class="conv ${c.id === S.active ? "on" : ""}" data-act="open-conv" data-id="${c.id}">
+    <div class="ava">${esc(initials(convName(c)))}</div><div class="grow"><b>${esc(convName(c))}</b><small>${esc(c.lastText || "")}</small></div>
+    <div class="meta">${tlabel(c.lastAt)}${c.unread > 0 ? `<br><span class="dot">${c.unread}</span>` : ""}</div></button>`).join("") || `<div class="empty">${q ? "No chats match." : "No chats yet."}</div>`;
+}
+function openConv(id) {
+  S.active = id; S.msgs = [];
+  if (cur() !== "inbox") go("inbox");
+  $(".inbox")?.classList.add("open");
+  buildChat(); paintConvList();
+  S.unsubMsgs?.();
+  S.unsubMsgs = onSnapshot(query(collection(db, "conversations", id, "messages"), orderBy("ts", "desc"), limit(200)), s => {
+    S.msgs = s.docs.map(d => ({ id: d.id, ...d.data() })).reverse(); paintMsgs();
+    const c = S.convs.find(x => x.id === id); if (c?.unread > 0) updateDoc(doc(db, "conversations", id), { unread: 0 }).catch(() => {});
+  }, e => toast(e.message, true));
+}
+function windowOpen() { const c = S.convs.find(x => x.id === S.active); const t = tdate(c?.lastInboundAt); return !!t && Date.now() - t < 864e5; }
+function buildChat() {
+  const chat = $("#chat"); if (!chat) return;
+  chat.innerHTML = `<div class="chat-head" id="chatHead"></div><div id="msgs"></div><div id="winNotice"></div>
+  <div class="composer"><textarea id="msgBox" rows="1" placeholder="Type a message"></textarea><button class="btn" id="msgSend">${ic.send}Send</button></div>`;
+  const send = async () => { const t = $("#msgBox").value.trim(); if (!t) return; $("#msgBox").value = ""; try { await call("sendMessage", { to: S.active, text: t }); } catch (e) { toast(e.message, true); $("#msgBox").value = t; } };
+  $("#msgSend").onclick = send;
+  $("#msgBox").onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  paintHead(); paintMsgs();
+}
+function paintHead() {
+  const h = $("#chatHead"); if (!h || !S.active) return;
+  const c = S.convs.find(x => x.id === S.active) || { id: S.active }, cu = S.byPhone[S.active];
+  h.innerHTML = `<button class="btn ghost sm" data-act="back-convs" style="display:${innerWidth <= 860 ? "inline-flex" : "none"}">${ic.back}</button>
+    <div class="ava">${esc(initials(convName(c)))}</div><div class="grow"><b>${esc(convName(c))}</b><span class="small muted">+${esc(S.active)} ${cu?.policyType ? "· " + esc(cu.policyType) : ""}</span></div>
+    ${cu?.policyPdfUrl ? `<button class="btn ghost sm" data-act="send-pdf">${ic.file}Send policy PDF</button>` : ""}
+    ${cu ? `<button class="btn ghost sm" data-act="cust-edit" data-id="${cu.id}">Customer</button>` : ""}
+    <label class="row small" style="gap:8px;font-weight:600" title="When off, the bot stays quiet in this chat so you can reply yourself">Bot <span class="sw"><input type="checkbox" data-act="toggle-bot" ${c.botPaused ? "" : "checked"} onclick="event.preventDefault()"><i></i></span></label>`;
+  const open = windowOpen();
+  $("#winNotice").innerHTML = open ? "" : `<div class="notice">The 24-hour reply window is closed. You can only send an approved template now (use Reminders), until the customer writes again.</div>`;
+  $("#msgBox").disabled = !open; $("#msgSend").disabled = !open;
+  $("#msgBox").placeholder = open ? "Type a message" : "Waiting for the customer to message first";
+}
+function paintMsgs() {
+  const box = $("#msgs"); if (!box) return;
+  let last = "", html = "";
+  for (const m of S.msgs) {
+    const d = tdate(m.ts), key = d ? d.toDateString() : "";
+    if (key && key !== last) { last = key; html += `<div class="dayline">${d.toDateString() === new Date().toDateString() ? "Today" : d.toLocaleDateString("en-IN", { day: "numeric", month: "long" })}</div>`; }
+    const tick = m.direction === "out" ? (m.status === "failed" ? `<span class="failed" title="${esc(m.error || "")}">Failed</span>` : m.status === "read" ? `<span class="read">✓✓</span>` : m.status === "delivered" ? "✓✓" : "✓") : "";
+    const body = m.type === "document" && m.mediaUrl ? `<a href="${esc(m.mediaUrl)}" target="_blank" rel="noopener">PDF · ${esc(m.text)}</a>` : esc(m.text).replace(/\n/g, "<br>");
+    html += `<div class="m ${m.direction}">${body}<div class="t">${m.by === "bot" ? "Bot · " : m.by === "auto" ? "Auto reminder · " : ""}${d ? d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) : ""} ${tick}</div></div>`;
+  }
+  const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+  box.innerHTML = html || `<div class="chat-empty">No messages yet.</div>`;
+  if (atEnd || !box.dataset.s) { box.scrollTop = box.scrollHeight; box.dataset.s = 1; }
+}
+
+/* ═══════════════════ CUSTOMERS ═══════════════════ */
+const TYPES = ["Health", "Life", "Term", "Motor", "Travel", "Home", "Other"];
+let cFilter = "all", cQuery = "";
+render.customers = () => {
+  $("#p-customers").innerHTML = `<div class="page-head"><h1>Customers</h1><div class="row"><button class="btn ghost" data-act="cust-import">Import CSV</button><button class="btn" data-act="cust-new">${ic.plus}Add customer</button></div></div>
+  <div class="toolbar"><input class="search" id="cSearch" placeholder="Search name, phone or policy number" value="${esc(cQuery)}"><select id="cFilter">
+    ${[["all", "All customers"], ["due30", "Due in 30 days"], ["overdue", "Overdue"], ["nopdf", "No policy PDF"], ["noopt", "Not opted in"]].map(([v, l]) => `<option value="${v}" ${cFilter === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+  <div class="card scroll-x" style="padding:0"><table class="tbl"><thead><tr><th>Customer</th><th>Policy</th><th>Premium</th><th>Renewal</th><th>WhatsApp</th><th>PDF</th><th></th></tr></thead><tbody id="cBody"></tbody></table></div>`;
+  $("#cSearch").oninput = e => { cQuery = e.target.value; paintCust(); };
+  $("#cFilter").onchange = e => { cFilter = e.target.value; paintCust(); };
+  paintCust();
+};
+function paintCust() {
+  const q = cQuery.toLowerCase();
+  const rows = S.customers.filter(c => {
+    if (q && ![c.name, c.phone, c.policyNumber].some(v => String(v || "").toLowerCase().includes(q))) return false;
+    const d = c.dueDate ? daysUntil(c.dueDate) : null;
+    return cFilter === "due30" ? d !== null && d >= 0 && d <= 30 : cFilter === "overdue" ? d !== null && d < 0 : cFilter === "nopdf" ? !c.policyPdfUrl : cFilter === "noopt" ? !c.optIn : true;
+  }).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  $("#cBody").innerHTML = rows.map(c => `<tr class="click" data-act="cust-edit" data-id="${c.id}">
+    <td><b>${esc(c.name)}</b><div class="small muted">+${esc(c.phone)}</div></td>
+    <td>${esc(c.policyType || "—")}<div class="small muted">${esc(c.policyNumber || "")} ${c.insurer ? "· " + esc(c.insurer) : ""}</div></td>
+    <td>${inr(c.premium)}</td>
+    <td>${c.dueDate ? `${fmtDate(c.dueDate)}<div><span class="chip ${daysUntil(c.dueDate) < 0 ? "rose" : daysUntil(c.dueDate) <= 7 ? "gold" : ""}">${dueText(c.dueDate)}</span></div>` : "—"}</td>
+    <td>${c.optIn ? '<span class="chip jade">Opted in</span>' : '<span class="chip">No consent</span>'}</td>
+    <td>${c.policyPdfUrl ? `<a href="${esc(c.policyPdfUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="chip iris">View PDF</a>` : '<span class="muted">—</span>'}</td>
+    <td><button class="btn ghost sm" data-act="cust-chat" data-phone="${esc(c.phone)}">Chat</button></td></tr>`).join("") || `<tr><td colspan="7" class="empty">${S.customers.length ? "No customers match." : "No customers yet. Add one, or import a CSV."}</td></tr>`;
+}
+function custModal(c) {
+  const v = c || {};
+  const d = modal(`<form class="dlg" id="cForm"><h2>${c ? "Edit customer" : "Add customer"}</h2>
+    <div class="grid2"><label class="fld"><span>Full name</span><input name="name" required value="${esc(v.name)}"></label>
+    <label class="fld"><span>WhatsApp number <small>(10 digits or with 91)</small></span><input name="phone" required inputmode="tel" value="${esc(v.phone)}"></label></div>
+    <div class="grid3"><label class="fld"><span>Policy type</span><select name="policyType">${TYPES.map(t => `<option ${v.policyType === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+    <label class="fld"><span>Policy number</span><input name="policyNumber" value="${esc(v.policyNumber)}"></label>
+    <label class="fld"><span>Insurer</span><input name="insurer" value="${esc(v.insurer)}"></label></div>
+    <div class="grid3"><label class="fld"><span>Premium (₹)</span><input name="premium" type="number" min="0" value="${esc(v.premium)}"></label>
+    <label class="fld"><span>Renewal date</span><input name="dueDate" type="date" value="${esc(v.dueDate)}"></label>
+    <label class="fld"><span>Email</span><input name="email" type="email" value="${esc(v.email)}"></label></div>
+    <label class="fld"><span>Notes</span><textarea name="notes" style="min-height:60px">${esc(v.notes)}</textarea></label>
+    <label class="fld"><span>Policy PDF <small>(PDF, up to 10 MB)</small></span><input type="file" name="pdf" accept="application/pdf">${v.policyPdfUrl ? `<span class="small">Current: <a href="${esc(v.policyPdfUrl)}" target="_blank" rel="noopener">${esc(v.policyPdfName || "policy.pdf")}</a></span>` : ""}</label>
+    <div class="bar hidden" id="upBar"><i></i></div>
+    <label class="row" style="font-weight:500"><span class="sw"><input type="checkbox" name="optIn" ${v.optIn ? "checked" : ""}><i></i></span><span>This customer agreed to receive WhatsApp messages from us <small class="muted">(required by Meta)</small></span></label>
+    <div class="dlg-foot"><div>${c ? `<button type="button" class="btn danger" id="cDel">Delete</button>` : ""}</div><div class="row"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" id="cSave">Save customer</button></div></div></form>`);
+  $("#cDel", d)?.addEventListener("click", async () => { if (confirm("Delete this customer?")) { await deleteDoc(doc(db, "customers", c.id)); closeModal(); } });
+  $("#cForm", d).onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target), btn = $("#cSave", d); btn.disabled = true; btn.textContent = "Saving…";
+    try {
+      const phone = normPhone(f.get("phone")); if (phone.length < 11) throw new Error("Enter a valid WhatsApp number.");
+      const dup = S.customers.find(x => x.phone === phone && x.id !== c?.id); if (dup) throw new Error(`${dup.name} already uses this number.`);
+      const id = c?.id || doc(collection(db, "customers")).id;
+      const data = { name: f.get("name").trim(), phone, email: f.get("email").trim(), policyType: f.get("policyType"), policyNumber: f.get("policyNumber").trim(), insurer: f.get("insurer").trim(), premium: f.get("premium") ? Number(f.get("premium")) : null, dueDate: f.get("dueDate") || null, notes: f.get("notes").trim(), optIn: f.get("optIn") === "on", updatedAt: serverTimestamp() };
+      if (!c) data.createdAt = serverTimestamp();
+      const file = f.get("pdf");
+      if (file && file.size) {
+        if (file.type !== "application/pdf") throw new Error("Only PDF files can be uploaded.");
+        if (file.size > 10 * 1024 * 1024) throw new Error("That PDF is over 10 MB.");
+        const path = `policies/${id}/${Date.now()}_${file.name.replace(/[^\w.\-]/g, "_")}`, r = ref(storage, path);
+        $("#upBar", d).classList.remove("hidden");
+        await new Promise((res, rej) => { const t = uploadBytesResumable(r, file, { contentType: "application/pdf" }); t.on("state_changed", s => $("#upBar i", d).style.width = (s.bytesTransferred / s.totalBytes * 100) + "%", rej, res); });
+        if (v.policyPdfPath) deleteObject(ref(storage, v.policyPdfPath)).catch(() => {});
+        data.policyPdfUrl = await getDownloadURL(r); data.policyPdfPath = path; data.policyPdfName = file.name;
+      }
+      await setDoc(doc(db, "customers", id), data, { merge: true });
+      closeModal(); toast("Customer saved");
+    } catch (er) { toast(er.message, true); btn.disabled = false; btn.textContent = "Save customer"; }
+  };
+}
+function importModal() {
+  const d = modal(`<div class="dlg"><h2>Import customers from CSV</h2>
+    <p class="muted">First row must be headers. Columns: <b>name, phone</b> (required), policyType, policyNumber, insurer, premium, dueDate (YYYY-MM-DD or DD/MM/YYYY), email, optIn (yes/no).<br>Customers are marked as <b>not opted in</b> unless the optIn column says yes.</p>
+    <input type="file" id="csvFile" accept=".csv,text/csv"><div id="csvInfo" class="small"></div>
+    <div class="dlg-foot"><span></span><div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="csvGo" disabled>Import</button></div></div></div>`);
+  let rows = [];
+  const parse = t => { const out = []; let row = [], cell = "", q = false; for (let i = 0; i < t.length; i++) { const ch = t[i]; if (q) { if (ch === '"' && t[i + 1] === '"') { cell += '"'; i++; } else if (ch === '"') q = false; else cell += ch; } else if (ch === '"') q = true; else if (ch === ",") { row.push(cell); cell = ""; } else if (ch === "\n" || ch === "\r") { if (ch === "\r" && t[i + 1] === "\n") i++; row.push(cell); out.push(row); row = []; cell = ""; } else cell += ch; } if (cell || row.length) { row.push(cell); out.push(row); } return out.filter(r => r.some(x => x.trim())); };
+  const fixDate = s => { s = (s || "").trim(); const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null; };
+  $("#csvFile", d).onchange = async e => {
+    const t = await e.target.files[0].text(), tbl = parse(t), h = tbl.shift().map(x => x.trim().toLowerCase().replace(/[\s_]/g, ""));
+    const col = n => h.indexOf(n.toLowerCase());
+    rows = tbl.map(r => ({ name: (r[col("name")] || "").trim(), phone: normPhone(r[col("phone")]), policyType: (r[col("policytype")] || "").trim(), policyNumber: (r[col("policynumber")] || "").trim(), insurer: (r[col("insurer")] || "").trim(), premium: Number(r[col("premium")]) || null, dueDate: fixDate(r[col("duedate")]), email: (r[col("email")] || "").trim(), optIn: /^(y|yes|true|1)$/i.test((r[col("optin")] || "").trim()) })).filter(r => r.name && r.phone.length >= 11);
+    $("#csvInfo", d).textContent = `${rows.length} valid customer${rows.length === 1 ? "" : "s"} found.`; $("#csvGo", d).disabled = !rows.length;
+  };
+  $("#csvGo", d).onclick = async ev => busy(ev.currentTarget, async () => {
+    const existing = new Map(S.customers.map(c => [c.phone, c.id]));
+    for (let i = 0; i < rows.length; i += 400) { const b = writeBatch(db); rows.slice(i, i + 400).forEach(r => { const id = existing.get(r.phone) || doc(collection(db, "customers")).id; b.set(doc(db, "customers", id), { ...r, updatedAt: serverTimestamp() }, { merge: true }); }); await b.commit(); }
+    closeModal(); toast(`${rows.length} customers imported`);
+  });
+}
+
+/* ═══════════════════ REMINDERS (templates) ═══════════════════ */
+async function loadTemplates(force) {
+  if (S.templates && !force) return;
+  S.tplError = "";
+  try { S.templates = await call("listTemplates"); } catch (e) { S.templates = []; S.tplError = e.message; }
+  if (["broadcast", "bot"].includes(cur())) render[cur()]();
+}
+const placeholderCount = t => t ? Math.max(0, ...[...t.body.matchAll(/\{\{(\d+)\}\}/g)].map(m => +m[1])) : 0;
+const DEFAULT_MAP = ["{{name}}", "{{policy_type}}", "{{due_date}}", "{{premium}}", "{{policy_no}}", "{{insurer}}"];
+const tplByKey = k => (S.templates || []).find(t => t.name + "|" + t.language === k);
+function paramInputs(n, vals, cls) {
+  if (!n) return `<p class="small muted">This template has no variables.</p>`;
+  return Array.from({ length: n }, (_, i) => `<label class="fld"><span>Fills <code>{{${i + 1}}}</code> in the template</span><input class="${cls}" data-i="${i}" id="${cls}${i}" value="${esc(vals[i] ?? DEFAULT_MAP[i] ?? "")}"></label>`).join("") +
+    `<div class="rule-hint">${VARS.map(v => `<code data-act="ins-var" data-v="${v}" data-target="#${cls}0" title="Click to add to the first box">{{${v}}}</code>`).join("")}</div><div class="small muted">Type text or click a name above. Each customer's own details are filled in.</div>`;
+}
+render.broadcast = () => {
+  loadTemplates();
+  if (S.pre) { B.filter = "custom"; B.custom = S.pre; B.sel = new Set(S.pre); S.pre = null; }
+  const tpls = S.templates, t = tplByKey(B.key), n = placeholderCount(t), el = eligible();
+  if (!B.sel.size && B.filter !== "custom" && !B.touched) B.sel = new Set(el.filter(c => c.optIn).map(c => c.id));
+  const first = el.find(c => B.sel.has(c.id));
+  const prevText = t ? t.body.replace(/\{\{(\d+)\}\}/g, (m, i) => fillVars(B.params[i - 1] ?? DEFAULT_MAP[i - 1] ?? "", first || {})) : "";
+  $("#p-broadcast").innerHTML = `<div class="page-head"><div><h1>Reminders</h1><p class="muted">Send an approved template to customers who agreed to WhatsApp messages.</p></div></div>
+  <div class="two" style="grid-template-columns:1fr 1.2fr">
+   <div class="card stack"><div class="row spread"><h3>1. Message</h3><button class="btn ghost sm" data-act="tpl-refresh">Refresh templates</button></div>
+    ${tpls === null ? `<p class="muted">Loading your approved templates from Meta…</p>` : S.tplError ? `<div class="result bad" style="margin:0">${esc(S.tplError)}</div>` : !tpls.length ? `<p class="muted">No approved templates yet. Create one in WhatsApp Manager (Message templates). Meta usually approves them within minutes to a day.</p>` : `
+    <label class="fld"><span>Template</span><select id="bTpl"><option value="">Choose a template</option>${tpls.map(x => `<option value="${esc(x.name + "|" + x.language)}" ${B.key === x.name + "|" + x.language ? "selected" : ""}>${esc(x.name)} (${esc(x.language)} · ${esc(x.category.toLowerCase())})</option>`).join("")}</select></label>
+    ${t ? `<div class="m out" style="max-width:100%;align-self:stretch;white-space:pre-wrap">${esc(prevText)}<div class="t">Preview for ${esc(first?.name || "a customer")}</div></div>${paramInputs(n, B.params, "bp")}` : ""}`}
+   </div>
+   <div class="card stack"><h3>2. Customers</h3>
+    <select id="bFilter" class="search"><option value="due7" ${B.filter === "due7" ? "selected" : ""}>Renewing in the next 7 days</option><option value="due30" ${B.filter === "due30" ? "selected" : ""}>Renewing in the next 30 days</option><option value="overdue" ${B.filter === "overdue" ? "selected" : ""}>Overdue</option><option value="all" ${B.filter === "all" ? "selected" : ""}>Everyone</option>${B.custom ? `<option value="custom" ${B.filter === "custom" ? "selected" : ""}>Chosen from Overview</option>` : ""}</select>
+    <div style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:4px 12px">
+     ${el.map(c => `<label class="list-row" style="${c.optIn ? "" : "opacity:.55"}"><input type="checkbox" class="bSel" value="${c.id}" ${B.sel.has(c.id) ? "checked" : ""} ${c.optIn ? "" : "disabled"}><div class="grow"><b>${esc(c.name)}</b><span class="small muted">${esc(c.policyType || "")} ${c.dueDate ? "· " + dueText(c.dueDate) : ""}</span></div>${c.optIn ? "" : '<span class="chip">No consent</span>'}</label>`).join("") || `<div class="empty">No customers in this group.</div>`}</div>
+    <button class="btn jade" id="bSend" ${t && B.sel.size ? "" : "disabled"}>${ic.send}Send to ${B.sel.size} customer${B.sel.size === 1 ? "" : "s"}</button>
+    ${B.result ? `<div class="result ${B.result.failed.length ? "bad" : ""}"><b>${B.result.sent} sent</b>${B.result.skipped ? ` · ${B.result.skipped} skipped (no consent)` : ""}${B.result.failed.length ? ` · ${B.result.failed.length} failed` : ""}${B.result.failed.map(f => `<div class="small">${esc(f.name)}: ${esc(f.error)}</div>`).join("")}</div>` : ""}
+   </div></div>`;
+  $("#bTpl") && ($("#bTpl").onchange = e => { B.key = e.target.value; B.params = []; render.broadcast(); });
+  $$(".bp").forEach(i => i.oninput = () => { B.params[+i.dataset.i] = i.value; const f = el.find(c => B.sel.has(c.id)); const pv = $("#p-broadcast .m"); if (pv) pv.firstChild.textContent = t.body.replace(/\{\{(\d+)\}\}/g, (m, k) => fillVars($(`#bp${k - 1}`)?.value ?? "", f || {})); });
+  $("#bFilter").onchange = e => { B.filter = e.target.value; B.touched = false; B.sel = new Set(eligible().filter(c => c.optIn).map(c => c.id)); B.result = null; render.broadcast(); };
+  $$(".bSel").forEach(cb => cb.onchange = () => { B.touched = true; cb.checked ? B.sel.add(cb.value) : B.sel.delete(cb.value); $("#bSend").disabled = !(t && B.sel.size); $("#bSend").lastChild.textContent = `Send to ${B.sel.size} customer${B.sel.size === 1 ? "" : "s"}`; });
+  $("#bSend")?.addEventListener("click", ev => {
+    const params = Array.from({ length: n }, (_, i) => $(`#bp${i}`)?.value ?? DEFAULT_MAP[i] ?? "");
+    if (!confirm(`Send "${t.name}" to ${B.sel.size} customer(s)?`)) return;
+    busy(ev.currentTarget, async () => {
+      const ids = [...B.sel], tot = { sent: 0, skipped: 0, failed: [] };
+      for (let i = 0; i < ids.length; i += 50) { const r = await call("sendTemplate", { customerIds: ids.slice(i, i + 50), templateName: t.name, language: t.language, params, body: t.body }); tot.sent += r.sent; tot.skipped += r.skipped; tot.failed.push(...r.failed); }
+      B.result = tot; render.broadcast();
+    });
+  });
+};
+function eligible() {
+  const f = B.filter; return S.customers.filter(c => {
+    if (!c.phone) return false; const d = c.dueDate ? daysUntil(c.dueDate) : null;
+    return f === "due7" ? d !== null && d >= 0 && d <= 7 : f === "due30" ? d !== null && d >= 0 && d <= 30 : f === "overdue" ? d !== null && d < 0 : f === "custom" ? B.custom?.includes(c.id) : true;
+  }).sort(byDue);
+}
+
+/* ═══════════════════ BOT ═══════════════════ */
+render.bot = () => {
+  loadTemplates();
+  const s = S.bot, tpls = S.templates || [];
+  const rt = tpls.find(x => x.name + "|" + x.language === (s.renewalTemplate ? s.renewalTemplate + "|" + (s.renewalLanguage || "en") : "")) || tpls.find(x => x.name === s.renewalTemplate);
+  const n = placeholderCount(rt);
+  const sw = (id, on) => `<label class="sw"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><i></i></label>`;
+  const hrs = (id, v, d) => `<select id="${id}" style="border:1px solid var(--line);border-radius:10px;padding:8px">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${(v ?? d) === h ? "selected" : ""}>${h === 0 ? "12 AM" : h < 12 ? h + " AM" : h === 12 ? "12 PM" : h - 12 + " PM"}</option>`).join("")}</select>`;
+  $("#p-bot").innerHTML = `<div class="page-head"><div><h1>Auto-reply bot</h1><p class="muted">Answers customers instantly, any time of day. Your team can pause it per chat in the Inbox.</p></div><button class="btn" id="botSave">Save bot settings</button></div>
+  <div class="stack">
+   <div class="card"><div class="setting"><div class="body"><h3>Bot is ${s.enabled ? "on" : "off"}</h3><span class="muted small">When off, no automatic replies are sent.</span></div>${sw("bEnabled", s.enabled)}</div>
+    <div class="setting"><div class="body"><b>Welcome message</b><span class="muted small">Sent to a customer's very first message, when no rule matches.</span><textarea class="search" id="bWelcome" rows="3">${esc(s.welcomeText ?? "Hi {{name}}! Welcome to our insurance desk.\nReply 1 for premium due, 2 for your policy copy, 3 to talk to an agent.")}</textarea></div>${sw("bWelcomeOn", s.welcomeEnabled)}</div>
+    <div class="setting"><div class="body"><b>Outside office hours</b><span class="muted small">Sent when no rule matches and your desk is closed (India time).</span>
+      <div class="row"><span class="small">Open from</span>${hrs("bStart", s.startHour, 10)}<span class="small">to</span>${hrs("bEnd", s.endHour, 18)}</div>
+      <textarea class="search" id="bOff" rows="2">${esc(s.offHoursText ?? "Thanks for writing. Our desk is closed right now and we'll reply when we open at 10 AM.")}</textarea></div>${sw("bOffOn", s.offHoursEnabled)}</div>
+    <div class="setting"><div class="body"><b>If nothing matches</b><span class="muted small">Sent when no rule matches during office hours.</span><textarea class="search" id="bFall" rows="2">${esc(s.fallbackText ?? "Thanks, we've got your message. An agent will reply shortly.")}</textarea></div>${sw("bFallOn", s.fallbackEnabled)}</div></div>
+
+   <div class="card"><div class="row spread"><div><h3>Keyword rules</h3><span class="muted small">The first matching rule (lowest number) wins. Words work in any language, including Tamil and Hindi.</span></div><button class="btn" data-act="rule-edit">${ic.plus}Add rule</button></div>
+    <div class="scroll-x"><table class="tbl" style="margin-top:10px"><thead><tr><th>#</th><th>When the message has</th><th>Bot replies</th><th></th><th></th></tr></thead><tbody>
+    ${S.rules.map(r => `<tr><td>${r.priority}</td><td>${esc(r.keywords)}<div class="small muted">${r.match === "exact" ? "Exact message" : "Contains"}</div></td><td>${r.replyType === "policy_pdf" ? '<span class="chip iris">Sends policy PDF</span>' : ""}<div class="small">${esc((r.replyText || "").slice(0, 90))}</div></td><td>${r.active === false ? '<span class="chip">Paused</span>' : '<span class="chip jade">Live</span>'}</td><td style="white-space:nowrap"><button class="btn ghost sm" data-act="rule-edit" data-id="${r.id}">Edit</button> <button class="btn danger sm" data-act="rule-del" data-id="${r.id}">Delete</button></td></tr>`).join("") || `<tr><td colspan="5" class="empty">No rules yet.<br><button class="btn ghost sm" style="margin-top:10px" data-act="rule-samples">Add 4 starter rules</button></td></tr>`}</tbody></table></div>
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><b>Try a message</b><div class="row" style="margin-top:8px"><input class="search" id="tryIn" placeholder="Type what a customer might send"><span id="tryOut" class="small muted"></span></div></div></div>
+
+   <div class="card"><div class="setting" style="padding-top:0"><div class="body"><h3>Automatic renewal reminders</h3><span class="muted small">Every day at 10 AM, customers whose renewal is N days away get a template message. Only customers who agreed to WhatsApp, once per renewal.</span>
+     <div class="row"><span class="small">Send</span><input type="number" id="rDays" min="0" max="60" value="${s.renewalDaysBefore ?? 7}" style="width:74px;border:1px solid var(--line);border-radius:10px;padding:8px"><span class="small">days before the renewal date</span></div>
+     ${S.templates === null ? '<span class="small muted">Loading templates…</span>' : `<label class="fld"><span>Template</span><select id="rTpl"><option value="">Choose a template</option>${tpls.map(x => `<option value="${esc(x.name + "|" + x.language)}" ${rt && rt.name === x.name && rt.language === x.language ? "selected" : ""}>${esc(x.name)} (${esc(x.language)})</option>`).join("")}</select></label>`}
+     ${rt ? paramInputs(n, s.renewalParams || [], "rp") : ""}</div>${sw("rOn", s.renewalEnabled)}</div></div></div>`;
+  const tryIt = () => { const t = $("#tryIn").value; if (!t.trim()) { $("#tryOut").textContent = ""; return; } const r = S.rules.find(x => x.active !== false && matchRule(x, t)); $("#tryOut").textContent = r ? `Matches rule ${r.priority}: ${r.replyType === "policy_pdf" ? "sends policy PDF" : r.replyText.slice(0, 80)}` : "No rule matches. The welcome, office-hours or default reply would be used."; };
+  $("#tryIn").oninput = tryIt;
+  $$("#p-bot textarea,#p-bot input,#p-bot select").forEach(x => { if (x.id !== "tryIn") x.addEventListener("input", () => $("#p-bot").dataset.dirty = 1); });
+  $("#rTpl")?.addEventListener("change", () => { $("#botSave").click(); });
+  $("#botSave").onclick = ev => busy(ev.currentTarget, async () => {
+    const key = $("#rTpl")?.value || "", t = tplByKey(key), cnt = placeholderCount(t);
+    const data = { enabled: $("#bEnabled").checked, welcomeEnabled: $("#bWelcomeOn").checked, welcomeText: $("#bWelcome").value, offHoursEnabled: $("#bOffOn").checked, offHoursText: $("#bOff").value, startHour: +$("#bStart").value, endHour: +$("#bEnd").value, fallbackEnabled: $("#bFallOn").checked, fallbackText: $("#bFall").value, renewalEnabled: $("#rOn").checked, renewalDaysBefore: +$("#rDays").value };
+    if (t) Object.assign(data, { renewalTemplate: t.name, renewalLanguage: t.language, renewalBody: t.body, renewalParams: Array.from({ length: cnt }, (_, i) => $(`#rp${i}`)?.value ?? DEFAULT_MAP[i] ?? "") });
+    else if (!key && $("#rTpl")) Object.assign(data, { renewalTemplate: "", renewalParams: [] });
+    if (data.renewalEnabled && !data.renewalTemplate) throw new Error("Choose a template for the automatic reminders first.");
+    await setDoc(doc(db, "bot", "settings"), data, { merge: true });
+    $("#p-bot").dataset.dirty = ""; toast("Bot settings saved");
+  });
+};
+function ruleModal(r) {
+  const v = r || { priority: (S.rules.at(-1)?.priority || 0) + 1, match: "contains", replyType: "text", active: true };
+  const d = modal(`<form class="dlg" id="rForm"><h2>${r ? "Edit rule" : "Add rule"}</h2>
+    <label class="fld"><span>When the customer's message has <small>(separate words with commas)</small></span><input name="keywords" required value="${esc(v.keywords)}" placeholder="premium, due, renewal"></label>
+    <div class="grid3"><label class="fld"><span>Match</span><select name="match"><option value="contains" ${v.match === "contains" ? "selected" : ""}>Contains the word</option><option value="exact" ${v.match === "exact" ? "selected" : ""}>Exactly the message</option></select></label>
+    <label class="fld"><span>Bot does</span><select name="replyType"><option value="text" ${v.replyType === "text" ? "selected" : ""}>Sends a text reply</option><option value="policy_pdf" ${v.replyType === "policy_pdf" ? "selected" : ""}>Sends their policy PDF</option></select></label>
+    <label class="fld"><span>Rule number</span><input name="priority" type="number" min="1" required value="${v.priority}"></label></div>
+    <label class="fld"><span>Reply text <small>(for the PDF option, this is the caption)</small></span><textarea name="replyText" id="rText" required>${esc(v.replyText)}</textarea></label>
+    <div class="rule-hint">${VARS.map(x => `<code data-act="ins-var" data-v="${x}" data-target="#rText">{{${x}}}</code>`).join("")}</div>
+    <label class="row" style="font-weight:500"><span class="sw"><input type="checkbox" name="active" ${v.active !== false ? "checked" : ""}><i></i></span>Rule is live</label>
+    <div class="dlg-foot"><span></span><div class="row"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn">Save rule</button></div></div></form>`);
+  $("#rForm", d).onsubmit = async e => { e.preventDefault(); const f = new FormData(e.target); const id = r?.id || doc(collection(db, "botRules")).id;
+    try { await setDoc(doc(db, "botRules", id), { keywords: f.get("keywords").trim(), match: f.get("match"), replyType: f.get("replyType"), priority: Number(f.get("priority")), replyText: f.get("replyText").trim(), active: f.get("active") === "on" }); closeModal(); toast("Rule saved"); } catch (er) { toast(er.message, true); } };
+}
+async function addSamples() {
+  const s = [
+    ["hi, hello, hey, vanakkam, namaste", "Hi {{name}}! 👋 Welcome to our insurance desk.\nReply 1 for premium due, 2 for your policy copy, 3 to talk to an agent."],
+    ["1, premium, due, renewal", "Hi {{name}}, your {{policy_type}} policy {{policy_no}} has a premium of {{premium}} due on {{due_date}}."],
+    ["2, policy copy, policy pdf, document", "Here is your policy document.", "policy_pdf"],
+    ["3, agent, call me, help", "Sure, an agent will contact you shortly. Our desk is open 10 AM to 6 PM, Monday to Saturday."]
+  ];
+  const b = writeBatch(db); s.forEach(([k, t, type], i) => b.set(doc(collection(db, "botRules")), { keywords: k, match: "contains", replyType: type || "text", replyText: t, priority: i + 1, active: true })); await b.commit(); toast("Starter rules added");
+}
+
+/* ═══════════════════ SETTINGS ═══════════════════ */
+render.settings = async () => {
+  const admin = S.role === "admin", hook = `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/whatsappWebhook`;
+  if (admin && !S.meta) { try { S.meta = await call("getMetaStatus"); } catch (e) { toast(e.message, true); } }
+  const m = S.meta || {};
+  $("#p-settings").innerHTML = `<div class="page-head"><h1>Settings</h1></div><div class="stack">
+  <div class="card"><h3>WhatsApp connection</h3><p class="muted small">Details from Meta are saved to Firebase through a secure function. They never sit in this web page, and nobody can read them back here.</p>
+   ${admin ? `<form id="mForm" class="stack" style="margin-top:14px"><div class="grid2">
+    <label class="fld"><span>Phone number ID</span><input name="phoneNumberId" value="${esc(m.phoneNumberId)}" autocomplete="off"></label>
+    <label class="fld"><span>WhatsApp Business Account ID</span><input name="wabaId" value="${esc(m.wabaId)}" autocomplete="off"></label>
+    <label class="fld"><span>App ID</span><input name="appId" value="${esc(m.appId)}" autocomplete="off"></label>
+    <label class="fld"><span>App secret ${m.hasSecret ? '<span class="chip jade">Saved</span>' : '<span class="chip gold">Not saved</span>'}</span><input name="appSecret" type="password" autocomplete="new-password" placeholder="${m.hasSecret ? "Leave blank to keep the saved one" : "Paste from App settings → Basic"}"></label></div>
+    <label class="fld"><span>Permanent access token ${m.hasToken ? `<span class="chip jade">Saved · ends ${esc(m.tokenHint)}</span>` : '<span class="chip gold">Not saved</span>'}</span><input name="accessToken" type="password" autocomplete="new-password" placeholder="${m.hasToken ? "Leave blank to keep the saved one" : "Paste the System User token"}"></label>
+    <div class="row"><button class="btn" id="mSave">Save to Firebase</button><button type="button" class="btn ghost" id="mTest">Test connection</button></div><div id="mOut"></div></form>`
+   : `<p class="muted" style="margin-top:12px">Only admins can change these details.</p>`}</div>
+  ${admin ? `<div class="card"><h3>Connect Meta to your webhook</h3><p class="muted small">In developers.facebook.com → your app → WhatsApp → Configuration, paste these two values, then subscribe to the <b>messages</b> field.</p>
+   <div class="stack" style="margin-top:12px"><label class="fld"><span>Callback URL</span><div class="copybox"><input readonly value="${esc(hook)}"><button class="btn ghost" data-act="copy" data-text="${esc(hook)}">Copy</button></div></label>
+   <label class="fld"><span>Verify token</span><div class="copybox"><input readonly value="${esc(m.verifyToken || "Save your details first")}"><button class="btn ghost" data-act="copy" data-text="${esc(m.verifyToken || "")}">Copy</button></div></label>
+   <p class="small muted">If the deploy command printed a different URL for <b>whatsappWebhook</b>, use that one.</p></div></div>` : ""}
+  <div class="card"><h3>Team</h3><p class="muted small">Admins manage settings and the team. Agents handle chats and customers.</p>
+   <div style="margin:10px 0">${S.staff.map(u => `<div class="list-row"><div class="ava">${esc(initials(u.email))}</div><div class="grow"><b>${esc(u.email)}</b></div><span class="chip ${u.role === "admin" ? "iris" : ""}">${u.role === "admin" ? "Admin" : "Agent"}</span>${admin && u.id !== auth.currentUser.uid ? `<button class="btn danger sm" data-act="staff-remove" data-id="${u.id}">Remove</button>` : ""}</div>`).join("")}</div>
+   ${admin ? `<form id="tForm" class="grid3" style="align-items:end"><label class="fld"><span>Email</span><input name="email" type="email" required></label><label class="fld"><span>Temporary password <small>(new users)</small></span><input name="password" type="text" autocomplete="off" minlength="8"></label><label class="fld"><span>Role</span><select name="role"><option value="agent">Agent</option><option value="admin">Admin</option></select></label><button class="btn" style="grid-column:1/-1;justify-self:start">Add team member</button></form>` : ""}</div></div>`;
+  $("#mForm")?.addEventListener("submit", e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); busy($("#mSave"), async () => { await call("saveMetaConfig", f); S.meta = await call("getMetaStatus"); S.templates = null; toast("Saved to Firebase"); render.settings(); }); });
+  $("#mTest")?.addEventListener("click", ev => busy(ev.currentTarget, async () => { try { const r = await call("testConnection"); $("#mOut").innerHTML = `<div class="result"><b>Connected.</b> ${esc(r.verified_name || "")} · ${esc(r.display_phone_number || "")} · quality ${esc(r.quality_rating || "n/a")}</div>`; } catch (er) { $("#mOut").innerHTML = `<div class="result bad">${esc(er.message)}</div>`; } }));
+  $("#tForm")?.addEventListener("submit", e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); busy(e.target.querySelector("button"), async () => { await call("addStaff", f); e.target.reset(); toast("Team member added"); }); });
+};
+</script>
+</body>
+</html>
